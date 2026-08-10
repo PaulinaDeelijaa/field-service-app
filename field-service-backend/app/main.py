@@ -41,9 +41,10 @@ def create_app() -> FastAPI:
 
     # ── Routers ───────────────────────────────────────────────────────────────
     # Imported here to avoid circular imports at module load time.
-    from app.api import auth, photos, reports, sync, tasks
+    from app.api import auth, photos, reports, sync, tasks, users
 
     app.include_router(auth.router, prefix="/auth", tags=["auth"])
+    app.include_router(users.router, prefix="/users", tags=["users"])
     app.include_router(tasks.router, prefix="/tasks", tags=["tasks"])
     app.include_router(reports.router, prefix="/reports", tags=["reports"])
     app.include_router(photos.router, prefix="/photos", tags=["photos"])

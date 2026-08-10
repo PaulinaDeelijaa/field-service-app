@@ -1,14 +1,8 @@
 import { useQuery } from "@tanstack/react-query";
+import { Link } from "react-router-dom";
 import { getTasks } from "../services/tasks";
 import { ClipboardList, Clock, CheckCircle, AlertTriangle } from "lucide-react";
 import { useAuth } from "../contexts/AuthContext";
-
-const statuses = [
-  { label: "Total Tasks", status: undefined, icon: ClipboardList, color: "text-brand-600", bg: "bg-brand-50" },
-  { label: "Pending", status: "pending" as const, icon: Clock, color: "text-yellow-600", bg: "bg-yellow-50" },
-  { label: "In Progress", status: "in_progress" as const, icon: AlertTriangle, color: "text-blue-600", bg: "bg-blue-50" },
-  { label: "Completed", status: "completed" as const, icon: CheckCircle, color: "text-green-600", bg: "bg-green-50" },
-];
 
 function StatCard({ label, count, icon: Icon, color, bg }: { label: string; count: number; icon: React.ElementType; color: string; bg: string }) {
   return (
@@ -78,7 +72,11 @@ export function OverviewPage() {
         ) : (
           <ul className="divide-y divide-gray-50">
             {recent.map((task) => (
-              <li key={task.id} className="flex items-center justify-between px-5 py-3.5">
+              <li key={task.id}>
+                <Link
+                  to={`/tasks/${task.id}`}
+                  className="flex items-center justify-between px-5 py-3.5 hover:bg-gray-50"
+                >
                 <div>
                   <p className="text-sm font-medium text-gray-900">{task.title}</p>
                   <p className="mt-0.5 text-xs text-gray-400">{task.location_address ?? "No location"}</p>
@@ -91,6 +89,7 @@ export function OverviewPage() {
                     {task.status.replace("_", " ")}
                   </span>
                 </div>
+                </Link>
               </li>
             ))}
           </ul>

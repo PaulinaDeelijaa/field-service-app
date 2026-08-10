@@ -1,26 +1,26 @@
 import { useState } from "react";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { UserPlus, Copy, Check } from "lucide-react";
 import { register } from "../services/auth";
-import type { User, RegisterPayload } from "../types";
+import { getWorkers } from "../services/users";
+import type { RegisterPayload } from "../types";
 import { format } from "date-fns";
 
 export function WorkersPage() {
   const qc = useQueryClient();
   const [showCreate, setShowCreate] = useState(false);
   const [copied, setCopied] = useState<string | null>(null);
-  const [workers, setWorkers] = useState<User[]>(() => {
-    const saved = localStorage.getItem("registered_workers");
-    return saved ? JSON.parse(saved) : [];
-  });
   const [form, setForm] = useState({ email: "", full_name: "", password: "Password1" });
+
+  const { data: workers = [], isLoading } = useQuery({
+    queryKey: ["workers"],
+    queryFn: getWorkers,
+  });
 
   const createMutation = useMutation({
     mutationFn: (payload: RegisterPayload) => register(payload),
-    onSuccess: (user) => {
-      const updated = [user, ...workers];
-      setWorkers(updated);
-      localStorage.setItem("registered_workers", JSON.stringify(updated));
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["workers"] });
       qc.invalidateQueries({ queryKey: ["tasks"] });
       setShowCreate(false);
       setForm({ email: "", full_name: "", password: "Password1" });
@@ -40,7 +40,6 @@ export function WorkersPage() {
 
   return (
     <div className="space-y-5">
-      {/* Header */}
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Workers</h1>
@@ -55,9 +54,12 @@ export function WorkersPage() {
         </button>
       </div>
 
-      {/* Workers list */}
       <div className="overflow-hidden rounded-xl bg-white shadow-sm ring-1 ring-gray-200">
-        {workers.length === 0 ? (
+        {isLoading ? (
+          <div className="flex items-center justify-center py-16">
+            <div className="h-7 w-7 animate-spin rounded-full border-4 border-brand-600 border-t-transparent" />
+          </div>
+        ) : workers.length === 0 ? (
           <div className="py-16 text-center">
             <p className="text-sm text-gray-400">No workers registered yet.</p>
             <button
@@ -122,7 +124,6 @@ export function WorkersPage() {
         )}
       </div>
 
-      {/* Create modal */}
       {showCreate && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
           <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl">

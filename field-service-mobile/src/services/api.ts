@@ -1,8 +1,13 @@
+import Constants from "expo-constants";
 import axios from "axios";
 import { getAccessToken, clearSession } from "./storage";
 
-// Point to the backend — update for production deploy.
-export const API_BASE_URL = "http://192.168.178.143:8000";
+const configuredUrl =
+  process.env.EXPO_PUBLIC_API_URL ??
+  Constants.expoConfig?.extra?.apiUrl ??
+  "http://localhost:8000";
+
+export const API_BASE_URL = configuredUrl.replace(/\/$/, "");
 
 export const api = axios.create({
   baseURL: API_BASE_URL,
@@ -21,7 +26,6 @@ api.interceptors.response.use(
   async (err) => {
     if (err.response?.status === 401) {
       await clearSession();
-      // Navigation reset is handled by the AuthContext listener
     }
     return Promise.reject(err);
   }

@@ -1,4 +1,4 @@
-import * as FileSystem from "expo-file-system";
+import * as FileSystem from "expo-file-system/legacy";
 import * as Crypto from "expo-crypto";
 import { api } from "./api";
 import type { LocalPhoto } from "../types";
@@ -11,19 +11,27 @@ export function guessMimeType(filename: string): string {
 }
 
 export async function getPhotoMetadata(uri: string, filename: string) {
-  const info = await FileSystem.getInfoAsync(uri, { size: true });
+  const info = await FileSystem.getInfoAsync(uri);
   if (!info.exists) {
     throw new Error("Photo file not found on device.");
   }
 
-  const sha256_checksum = await Crypto.digestFileAsync(
+  const base64 = await FileSystem.readAsStringAsync(uri, {
+    encoding: FileSystem.EncodingType.Base64,
+  });
+
+  const sha256_checksum = await Crypto.digestStringAsync(
     Crypto.CryptoDigestAlgorithm.SHA256,
-    uri
+    base64,
+    { encoding: Crypto.CryptoEncoding.BASE64 }
   );
+
+  const fileSize =
+    "size" in info && typeof info.size === "number" ? info.size : base64.length;
 
   return {
     mime_type: guessMimeType(filename),
-    file_size_bytes: info.size ?? 0,
+    file_size_bytes: fileSize > 0 ? fileSize : 1,
     sha256_checksum,
   };
 }

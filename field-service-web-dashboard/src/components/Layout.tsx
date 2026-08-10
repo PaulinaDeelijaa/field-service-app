@@ -104,6 +104,15 @@ export function Layout() {
           mobileOpen ? "translate-x-0" : "-translate-x-full"
         }`}
       >
+        <div className="flex justify-end p-2 lg:hidden">
+          <button
+            onClick={() => setMobileOpen(false)}
+            className="rounded-lg p-1.5 text-gray-500 hover:bg-gray-100"
+            aria-label="Close menu"
+          >
+            <X className="h-5 w-5" />
+          </button>
+        </div>
         <SidebarContent />
       </aside>
 

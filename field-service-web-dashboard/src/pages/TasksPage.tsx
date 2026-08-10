@@ -3,7 +3,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
 import { Plus, Search, MapPin, Calendar, Trash2 } from "lucide-react";
 import { getTasks, createTask, deleteTask } from "../services/tasks";
-import { register } from "../services/auth";
+import { getWorkers } from "../services/users";
 import type { TaskStatus, TaskPriority, CreateTaskPayload } from "../types";
 import { format } from "date-fns";
 import { v4 as uuidv4 } from "uuid";
@@ -49,6 +49,11 @@ export function TasksPage() {
   const { data, isLoading } = useQuery({
     queryKey: ["tasks"],
     queryFn: () => getTasks(1, 200),
+  });
+
+  const { data: workers = [] } = useQuery({
+    queryKey: ["workers"],
+    queryFn: getWorkers,
   });
 
   const createMutation = useMutation({
@@ -255,13 +260,19 @@ export function TasksPage() {
                 </div>
               </div>
               <div>
-                <label className="mb-1 block text-sm font-medium text-gray-700">Assign to Worker ID</label>
-                <input
+                <label className="mb-1 block text-sm font-medium text-gray-700">Assign to Worker</label>
+                <select
                   value={form.assigned_to_id}
                   onChange={(e) => setForm({ ...form, assigned_to_id: e.target.value })}
-                  placeholder="Paste worker UUID"
-                  className="w-full rounded-lg border border-gray-300 px-3.5 py-2.5 text-sm outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-100"
-                />
+                  className="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm outline-none focus:border-brand-500"
+                >
+                  <option value="">Unassigned</option>
+                  {workers.map((w) => (
+                    <option key={w.id} value={w.id}>
+                      {w.full_name} ({w.email})
+                    </option>
+                  ))}
+                </select>
               </div>
               <div>
                 <label className="mb-1 block text-sm font-medium text-gray-700">Location</label>

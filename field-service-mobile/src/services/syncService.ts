@@ -17,11 +17,7 @@ import {
   upsertTaskFromServer,
   markTaskSynced,
 } from "../db/taskRepository";
-import {
-  getPendingSyncReports,
-  getReportByClientId,
-  markReportSynced,
-} from "../db/reportRepository";
+import { getReportByClientId, getPendingSyncReports, markReportSynced, upsertReportFromServer } from "../db/reportRepository";
 import {
   getPendingSyncPhotos,
   getPhotosPendingUpload,
@@ -104,12 +100,12 @@ export async function runSync(): Promise<SyncResult> {
       photos: photoPayloads,
     });
 
-    for (const task of response.tasks) {
-      upsertTaskFromServer(task);
+    for (const report of response.reports) {
+      upsertReportFromServer(report);
     }
 
-    for (const report of response.reports) {
-      markReportSynced(report.client_id, report.id);
+    for (const task of response.tasks) {
+      upsertTaskFromServer(task);
     }
 
     for (const photo of response.photos) {

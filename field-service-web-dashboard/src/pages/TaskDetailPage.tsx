@@ -3,6 +3,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { getTask, updateTask } from "../services/tasks";
 import { getReportsByTask } from "../services/reports";
 import { getPhotosByTask } from "../services/photos";
+import { getWorkers } from "../services/users";
 import { AuthenticatedPhoto } from "../components/AuthenticatedPhoto";
 import { ArrowLeft, MapPin, Calendar, Clock, User, AlertTriangle, FileText } from "lucide-react";
 import { format } from "date-fns";
@@ -59,6 +60,11 @@ export function TaskDetailPage() {
     enabled: !!id,
   });
 
+  const { data: workers = [] } = useQuery({
+    queryKey: ["workers"],
+    queryFn: getWorkers,
+  });
+
   const updateMutation = useMutation({
     mutationFn: ({ status }: { status: TaskStatus }) =>
       updateTask(id!, { expected_version: task!.server_version, status }),
@@ -80,6 +86,7 @@ export function TaskDetailPage() {
     return <div className="text-sm text-gray-400">Task not found.</div>;
   }
 
+  const assignedWorker = workers.find((w) => w.id === task.assigned_to_id);
   const nextStatus: Partial<Record<TaskStatus, TaskStatus>> = {
     pending: "in_progress",
     in_progress: "completed",
@@ -146,7 +153,11 @@ export function TaskDetailPage() {
             />
           )}
           {task.assigned_to_id && (
-            <InfoRow icon={User} label="Assigned to" value={task.assigned_to_id.slice(0, 12) + "…"} />
+            <InfoRow
+              icon={User}
+              label="Assigned to"
+              value={assignedWorker?.full_name ?? task.assigned_to_id.slice(0, 12) + "…"}
+            />
           )}
           <InfoRow icon={AlertTriangle} label="Version" value={`v${task.server_version}`} />
         </div>
